@@ -1,0 +1,89 @@
+Index: src/components/product-details.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"use client\";\n\nimport Image from \"next/image\";\n\nimport {\n  Carousel,\n  CarouselContent,\n  CarouselItem,\n  CarouselNext,\n  CarouselPrevious,\n} from \"@/components/ui/carousel\";\nimport { Button } from \"@/components/ui/button\";\nimport { Product } from \"@/types/product\";\n\ninterface ProductDetailsProps {\n  product: Product;\n}\n\nexport const ProductDetails = ({ product }: ProductDetailsProps) => {\n  return (\n    <div className=\"flex flex-col md:flex-row gap-4\">\n      <Carousel className=\"w-[800px] mr-16\">\n        <CarouselContent>\n          {product.images.map((image) => (\n            <CarouselItem key={image.url}>\n              <Image src={image.url} alt={image.alt} width={500} height={500} />\n            </CarouselItem>\n          ))}\n        </CarouselContent>\n        <CarouselPrevious />\n        <CarouselNext />\n      </Carousel>\n\n      <div>\n        <h1 className=\"text-2xl font-semibold text-[#282828]\">\n          {product.title}\n        </h1>\n        <div className=\"flex items-center mt-2 mb-4\">\n          <span className=\"text-yellow-500\">★</span>\n          <span className=\"ml-1 text-[#282828]\">\n            {product.rating.value} ({product.rating.count})\n          </span>\n        </div>\n        <p className=\"text-gray-600\">{product.description}</p>\n        <p className=\"text-4xl font-bold tracking-tighter text-[#f04a1c] mt-4\">\n          ${product.price}\n        </p>\n\n        {/* Add the Selects here */}\n\n        <Button className=\"mt-4 font-semibold\" size=\"lg\">\n          Add to cart\n        </Button>\n      </div>\n    </div>\n  );\n};\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/components/product-details.tsx b/src/components/product-details.tsx
+--- a/src/components/product-details.tsx	(revision 911318c43cf007af0bd680146560bbc4dc37bde2)
++++ b/src/components/product-details.tsx	(date 1739506221482)
+@@ -11,12 +11,48 @@
+ } from "@/components/ui/carousel";
+ import { Button } from "@/components/ui/button";
+ import { Product } from "@/types/product";
++import {useState} from "react";
+ 
+ interface ProductDetailsProps {
+   product: Product;
+ }
+ 
+ export const ProductDetails = ({ product }: ProductDetailsProps) => {
++  const structuredData = new Map();
++
++  product.variants.forEach(item => {
++    const [sizeId, colorId] = item.variantOptionIds;
++    if (!structuredData.has(sizeId)) {
++      structuredData.set(sizeId, new Map());
++    }
++    structuredData.get(sizeId).set(colorId, {
++      outOfStock: item.outOfStock || false,
++      price: item.price,
++      imageIndex: item.imageIndex,
++    });
++  });
++
++  const [selectedSize, setSelectedSize] = useState([...structuredData.keys()][0]);
++  const [selectedColor, setSelectedColor] = useState([...structuredData.get(selectedSize).keys()][0]);
++
++  /*
++
++
++  /*
++
++  Variant ID	Size
++201	Single
++202	King Single
++203	Double
++204	Queen
++
++Variant ID	Colour
++301	Black
++302	Dark Grey
++303	Navy
++304	Teal
++305	Purple
++   */
+   return (
+     <div className="flex flex-col md:flex-row gap-4">
+       <Carousel className="w-[800px] mr-16">
+@@ -46,7 +82,28 @@
+           ${product.price}
+         </p>
+ 
+-        {/* Add the Selects here */}
++        <label>Size: </label>
++        <select value={selectedSize} onChange={(e) => {
++          setSelectedSize(Number(e.target.value));
++          setSelectedColor([...structuredData.get(Number(e.target.value)).keys()][0]);
++        }}>
++          {[...structuredData.keys()].map(sizeId => (
++              <option key={sizeId} value={sizeId}>{`Size ${sizeId}`}</option>
++          ))}
++        </select>
++
++        <label>Color: </label>
++        <select value={selectedColor} onChange={(e) => setSelectedColor(Number(e.target.value))}>
++          {[...structuredData.get(selectedSize).keys()].map(colorId => (
++              <option key={colorId} value={colorId}>{`Color ${colorId}`}</option>
++          ))}
++        </select>
++
++        <p>Price: ${structuredData.get(selectedSize).get(selectedColor).price}</p>
++        <p>Out of Stock: {structuredData.get(selectedSize).get(selectedColor).outOfStock ? "Yes" : "No"}</p>
++        <p>Image Index: {structuredData.get(selectedSize).get(selectedColor).imageIndex}</p>
++
++
+ 
+         <Button className="mt-4 font-semibold" size="lg">
+           Add to cart

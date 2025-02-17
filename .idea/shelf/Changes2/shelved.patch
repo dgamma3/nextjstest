@@ -1,0 +1,87 @@
+Index: src/components/product-details.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"use client\";\n\nimport Image from \"next/image\";\nimport {\n  Carousel,\n  CarouselContent,\n  CarouselItem,\n  CarouselNext,\n  CarouselPrevious,\n} from \"@/components/ui/carousel\";\nimport { Button } from \"@/components/ui/button\";\nimport { Product } from \"@/types/product\";\nimport { useState } from \"react\";\nimport {\n  Select,\n  SelectContent,\n  SelectGroup, SelectIcon,\n  SelectItem, SelectLabel, SelectPortal, SelectScrollDownButton, SelectScrollUpButton,\n  SelectSeparator,\n  SelectTrigger,\n  SelectValue, SelectViewport, Root, SelectItemText\n} from \"@radix-ui/react-select\";\nimport {ChevronDownIcon, ChevronUpIcon} from \"lucide-react\";\nimport \"./styles.css\";\n\ninterface ProductDetailsProps {\n  product: Product;\n}\n\nexport const ProductDetails = ({ product }: ProductDetailsProps) => {\n  const structuredData = new Map();\n  const sizeSet = new Map(); // Stores size name -> sizeId\n  const colorSet = new Map(); // Stores color name -> colorId\n\n  product.variants.forEach((item) => {\n    const [size, color] = item.name.split(\" - \");\n    const [sizeId, colorId] = item.variantOptionIds;\n\n    // Store unique sizes\n    if (!sizeSet.has(size)) {\n      sizeSet.set(size, sizeId);\n    }\n\n    // Store unique colors\n    if (!colorSet.has(color)) {\n      colorSet.set(color, colorId);\n    }\n\n    if (!structuredData.has(sizeId)) {\n      structuredData.set(sizeId, new Map());\n    }\n\n\n    structuredData.get(sizeId).set(colorId, {\n      outOfStock: item.outOfStock || false,\n      price: item.price,\n      imageIndex: item.imageIndex,\n    });\n  });\n\n  const [selectedSize, setSelectedSize] = useState(\tsizeSet.values().next().value);\n  const [selectedColor, setSelectedColor] = useState(\tcolorSet.values().next().value);\n\n\n  console.log(\"selectedSize\",selectedSize)\n  console.log(\"selectedColor\",selectedColor)\n  console.log(\"structuredData.get(selectedSize)?.get(selectedColor)?\",structuredData);\n\n\n  const handleValueChange = (value: any) => {\n    setSelectedColor(Number(value));\n  };\n\n  const resetSelection = () => {\n    //setSelectedValue('');\n  }\n  console.log(\"selectedColor\",selectedColor)\n  return (\n      <div className=\"flex flex-col md:flex-row gap-4\">\n        <Carousel  scrollTo={structuredData.get(selectedSize)?.get(selectedColor)?.imageIndex} className=\"w-[800px] mr-16\">\n          <CarouselContent>\n            {product.images.map((image) => (\n                <CarouselItem key={image.url}>\n                  <Image src={image.url} alt={image.alt} width={500} height={500} />\n                </CarouselItem>\n            ))}\n          </CarouselContent>\n          <CarouselPrevious />\n          <CarouselNext />\n        </Carousel>\n\n        <div>\n          <h1 className=\"text-2xl font-semibold text-[#282828]\">\n            {product.title}\n          </h1>\n          <div className=\"flex items-center mt-2 mb-4\">\n            <span className=\"text-yellow-500\">★</span>\n            <span className=\"ml-1 text-[#282828]\">\n            {product.rating.value} ({product.rating.count})\n          </span>\n          </div>\n          <p className=\"text-gray-600\">{product.description}</p>\n          <p className=\"text-4xl font-bold tracking-tighter text-[#f04a1c] mt-4\">\n            ${product.price}\n          </p>\n\n\n\n\n\n          <Root value={selectedColor}  onValueChange={handleValueChange}>\n            <SelectTrigger className=\"SelectTrigger\" aria-label=\"Food\">\n              <SelectValue placeholder=\"Select a fruit…\" />\n              <SelectIcon className=\"SelectIcon\">\n                <ChevronDownIcon />\n              </SelectIcon>\n            </SelectTrigger>\n              <SelectContent className=\"SelectContent\">\n                <SelectScrollUpButton className=\"SelectScrollButton\">\n                  <ChevronUpIcon />\n                </SelectScrollUpButton>\n                <SelectViewport className=\"SelectViewport\">\n                  <SelectGroup>\n                    {[...colorSet.entries()].map(([color, colorId]) => (\n                        <SelectItem key={colorId} value={colorId.toString()}>\n                          {color}\n                        </SelectItem>\n                    ))}\n                  </SelectGroup>\n\n\n                </SelectViewport>\n                <SelectScrollDownButton className=\"SelectScrollButton\">\n                  <ChevronDownIcon />\n                </SelectScrollDownButton>\n              </SelectContent>\n          </Root>\n\n          <label>Size: </label>\n          <select\n              value={selectedSize}\n              onChange={(e) => setSelectedSize(Number(e.target.value))}\n\n          >\n\n          </select>\n\n\n          <p>Price: ${structuredData.get(selectedSize)?.get(selectedColor)?.price}</p>\n          <p>Out of Stock: {structuredData.get(selectedSize)?.get(selectedColor)?.outOfStock ? \"Yes\" : \"No\"}</p>\n          <p>Image Index: {structuredData.get(selectedSize)?.get(selectedColor)?.imageIndex}</p>\n\n          <Button className=\"mt-4 font-semibold\" size=\"lg\">\n            Add to cart\n          </Button>\n        </div>\n      </div>\n  );\n};
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/components/product-details.tsx b/src/components/product-details.tsx
+--- a/src/components/product-details.tsx	(revision 048a470aff122d7dd9ccd50a31f1385d877885cc)
++++ b/src/components/product-details.tsx	(date 1739694146556)
+@@ -65,16 +65,6 @@
+   console.log("selectedSize",selectedSize)
+   console.log("selectedColor",selectedColor)
+   console.log("structuredData.get(selectedSize)?.get(selectedColor)?",structuredData);
+-
+-
+-  const handleValueChange = (value: any) => {
+-    setSelectedColor(Number(value));
+-  };
+-
+-  const resetSelection = () => {
+-    //setSelectedValue('');
+-  }
+-  console.log("selectedColor",selectedColor)
+   return (
+       <div className="flex flex-col md:flex-row gap-4">
+         <Carousel  scrollTo={structuredData.get(selectedSize)?.get(selectedColor)?.imageIndex} className="w-[800px] mr-16">
+@@ -106,9 +96,7 @@
+ 
+ 
+ 
+-
+-
+-          <Root value={selectedColor}  onValueChange={handleValueChange}>
++          <Root value={"123"}>
+             <SelectTrigger className="SelectTrigger" aria-label="Food">
+               <SelectValue placeholder="Select a fruit…" />
+               <SelectIcon className="SelectIcon">
+@@ -121,11 +109,24 @@
+                 </SelectScrollUpButton>
+                 <SelectViewport className="SelectViewport">
+                   <SelectGroup>
+-                    {[...colorSet.entries()].map(([color, colorId]) => (
+-                        <SelectItem key={colorId} value={colorId.toString()}>
+-                          {color}
+-                        </SelectItem>
+-                    ))}
++                    <SelectItem value="france">
++                      <SelectItemText>France</SelectItemText>
++                    </SelectItem>
++                    <SelectItem value="apple">
++                      <SelectItemText>Apple</SelectItemText>
++                    </SelectItem>
++                    <SelectItem value="banana">
++                      <SelectItemText>Banana</SelectItemText>
++                    </SelectItem>
++                    <SelectItem value="123">
++                      <SelectItemText>Blueberry</SelectItemText>
++                    </SelectItem>
++                    <SelectItem value="grapes">
++                      <SelectItemText>Grapes</SelectItemText>
++                    </SelectItem>
++                    <SelectItem value="pineapple">
++                      <SelectItemText>Pineapple</SelectItemText>
++                    </SelectItem>
+                   </SelectGroup>
+ 
+ 
+@@ -145,6 +146,18 @@
+ 
+           </select>
+ 
++          <label>Color: </label>
++          <select
++              value={selectedColor}
++              onChange={(e) => setSelectedColor(Number(e.target.value))}
++          >
++            {[...colorSet.entries()].map(([color, colorId]) => (
++                <option key={colorId} value={colorId}>
++                  {color}
++                </option>
++            ))}
++
++          </select>
+ 
+           <p>Price: ${structuredData.get(selectedSize)?.get(selectedColor)?.price}</p>
+           <p>Out of Stock: {structuredData.get(selectedSize)?.get(selectedColor)?.outOfStock ? "Yes" : "No"}</p>
